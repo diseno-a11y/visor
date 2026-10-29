@@ -1,0 +1,41 @@
+# Borra cada día los visores de proyecto cuya vigencia ya pasó.
+# La fecha de vencimiento va dentro de cada HTML ("vence":"AAAA-MM-DD"),
+# la pone el Visualizador 3D al descargar el HTML para instaladores.
+name: Borrar visores vencidos
+
+on:
+  schedule:
+    - cron: "0 11 * * *"     # todos los días, 6:00 a. m. hora Colombia
+  workflow_dispatch:          # también se puede ejecutar a mano desde la pestaña Actions
+
+permissions:
+  contents: write
+
+jobs:
+  limpiar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Buscar y borrar HTML vencidos
+        run: |
+          python3 - <<'PY'
+          import datetime, glob, os, re
+          hoy = (datetime.datetime.utcnow() - datetime.timedelta(hours=5)).date().isoformat()
+          borrados = []
+          for f in glob.glob('**/*.html', recursive=True):
+              with open(f, encoding='utf-8', errors='ignore') as fh:
+                  m = re.search(r'"vence":"(\d{4}-\d{2}-\d{2})"', fh.read())
+              if m and m.group(1) < hoy:
+                  os.remove(f)
+                  borrados.append(f)
+          print('Hoy:', hoy)
+          print('Borrados:', borrados or 'ninguno')
+          PY
+
+      - name: Guardar cambios
+        run: |
+          git config user.name "limpieza-automatica"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || (git commit -m "Borrar visores vencidos" && git push)
