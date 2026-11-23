@@ -166,6 +166,9 @@ aside{background:var(--side);border-right:1px solid var(--borde);overflow-y:auto
 .sec .ct .kv:first-of-type{margin-top:8px}
 .mas{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px 14px 0;width:calc(100% - 28px);height:38px;background:#1b2a44;border:1px solid #27406a;border-radius:6px;font-size:13px;font-weight:500}
 .mas:hover{background:#21345a}
+.mas.aislar{background:var(--rojo);border-color:var(--rojo);color:#fff}
+.mas.aislar:hover{background:var(--rojo-hover)}
+.mas.aislar.on{background:var(--card2);border-color:var(--borde2)}
 .props{padding:6px 14px}
 .props .kv{padding:7px 0;border-bottom:1px solid var(--borde)}
 .props .kv:last-child{border-bottom:0}
@@ -561,6 +564,7 @@ a.btn{color:var(--txt);text-decoration:none}
           </div>
           <div class="sec"><svg class="i"><use href="#ic-stack"/></svg><div class="ct">Cantidad en proyecto<b class="grande" id="eCant"></b></div></div>
           <div class="sec" style="border-bottom:0"><svg class="i"><use href="#ic-layers"/></svg><div class="ct"><span id="eCapaT">Capa</span><b id="eCapa"></b></div></div>
+          <button class="mas aislar" id="btnAislarPieza"><svg class="i" style="width:16px;height:16px"><use href="#ic-eye"/></svg>Aislar esta pieza</button>
           <button class="mas" id="btnMas">Ver más detalles <svg class="i" style="width:16px;height:16px"><use href="#ic-arrow"/></svg></button>
         </div>
         <div id="tabPr" class="props oculto"></div>
@@ -1072,6 +1076,7 @@ function refrescarVisibles(){
     o.visible = o.userData.item.visible && capaOn && (!filtro || filtro.has(o));
   });
   $('tAislar').classList.toggle('on', !!filtro);
+  etiquetaAislar();
 }
 function mostrarTodo(){
   filtro = null;
@@ -1157,10 +1162,11 @@ function seleccionar(it){
   pintar();
   if (!seleccion){ cerrarPanel(); return; }
   if (seleccion.fila){ seleccion.fila.classList.add('sel'); seleccion.fila.scrollIntoView({block:'nearest'}); }
-  actualizarPanel();
+  actualizarPanel(); etiquetaAislar();
   $('panel').classList.remove('oculto'); visor.classList.add('con-panel');
 }
 function cerrarPanel(){
+  if (estaAislada()){ filtro = null; refrescarVisibles(); }
   $('panel').classList.add('oculto'); visor.classList.remove('con-panel');
   if (seleccion){ if (seleccion.fila) seleccion.fila.classList.remove('sel'); seleccion = null; pintar(); }
   actualizarBarra();
@@ -1172,6 +1178,21 @@ function pestana(t){
   $('tabEl').classList.toggle('oculto', t !== 'el'); $('tabPr').classList.toggle('oculto', t !== 'pr');
 }
 $('btnMas').onclick = () => pestana('pr');
+/* Aislar la pieza seleccionada: se oculta todo lo demás */
+const estaAislada = () => !!(seleccion && filtro && filtro.size === seleccion.mallas.length && seleccion.mallas.every(o => filtro.has(o)));
+function etiquetaAislar(){
+  const b = $('btnAislarPieza'); if (!b) return;
+  const ya = estaAislada();
+  b.lastChild.textContent = ya ? 'Mostrar todo el modelo' : 'Aislar esta pieza';
+  b.classList.toggle('on', ya);
+}
+$('btnAislarPieza').onclick = () => {
+  if (!seleccion) return;
+  const ya = estaAislada();
+  filtro = ya ? null : new Set(seleccion.mallas);
+  refrescarVisibles();
+  encuadrar(ya ? objetos : seleccion.mallas);
+};
 
 function actualizarBarra(){
   const b = $('barraInfo');
