@@ -1546,7 +1546,8 @@ function interpretarLineas(lineas){
     if ((m = t.match(/^Proyecto:?\s*(.+)$/i))) { res.proyecto = m[1]; return; }
     if ((m = t.match(/^Pedido:?\s*(.+)$/i))) { res.pedido = m[1]; return; }
     if ((m = t.match(/^Fecha:?\s*(.+)$/i))) { res.fecha = m[1]; return; }
-    m = t.match(/^(\S+)\s+(.+?)\s+(\d{1,6})$/);
+    // Columna COLOR antes del código (A, B, A-B): se quita para leer el código
+    m = t.replace(/^[A-Z](?:-[A-Z])*\s+(?=[A-Z]{1,6}[A-Z0-9]*\d)/, '').match(/^(\S+)\s+(.+?)\s+(\d{1,6})$/);
     if (!m || !RE_COD.test(m[1].toUpperCase())) return;
     let desc = m[2], medida = '';
     const mm = desc.match(/\s((?:\d*[.,]?\d+\s*[xX]\s*\d*[.,]?\d+|\d*[.,]?\d+)\s*m)$/);
