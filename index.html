@@ -2101,7 +2101,7 @@ iniciarCompartir();
   if (emb){ try { abrirEmbebido(JSON.parse(emb.textContent)); } catch(e){} }
   else if (proy && par.get('qr')) mostrarPaginaQR(proy);
   else if (proy) abrirRemoto(proy);
-  else if (/^https?:/.test(location.protocol) && !/claude/.test(location.hostname) && !window.claude) portada();
+  else if (/^https?:/.test(location.protocol) && !/claude/.test(location.hostname) && !window.claude && par.get('modo') !== 'diseno') portada();
   else { const m = location.hash.match(/^#m-([0-9a-f]{32})$/i); if (m) abrirDesdeEnlace(m[1]); } }
 (function bucle(){
   requestAnimationFrame(bucle);
